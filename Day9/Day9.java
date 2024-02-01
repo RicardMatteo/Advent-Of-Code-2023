@@ -6,48 +6,51 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import Day8.Tuple;
+
+/**
+ * Day9
+ */
 public class Day9 {
 
+    /**
+     * Main method
+     * @param args
+     * @throws IOException
+     */
     public static void main(String[] args) throws IOException {
 
         // Reading the file 
         String path = "Day9/input";
         String input = Files.readString(Paths.get(path));
         String[] lines = input.split("\n");
-        int part1 = 0;
-        int part2 = 0;
+        Tuple<Integer> res = new Tuple<Integer>(0,0);
+        Tuple<Integer> temp = new Tuple<Integer>(0,0);
+        
         for (String line : lines) {
-            part1 += calcLine(line, false);
-            part2 += calcLine(line, true);
+            temp = calcLine(line);
+            res.left += temp.left;
+            res.right += temp.right;
+
         }
 
         // Print the result 
-        System.out.println("Part 1 : " + part1);
+        System.out.println("Part 1 : " + res.left);
+        System.out.println("Part 2 : " + res.right);
         
     }
 
-    
-
-    public static int calcLine(String line, Boolean isPart2) {
-        // init values
-        int res = 0;
-        List<Integer> currentLine = new ArrayList<Integer>();
-        List<Integer> nextLine = new ArrayList<Integer>();
-        List<List<Integer>> pastLines = new ArrayList<List<Integer>>();
+    /**
+     * Build the numbers
+     * @param currentLine the current line
+     * @param nextLine the next line
+     * @param pastLines the past lines
+     */
+    public static void buildNumers(List<Integer> currentLine, List<Integer> nextLine, List<List<Integer>> pastLines) {
+        int diff;
         Boolean found = false;
-
-        // Get the numbers of the line
-        for (String nm : line.split(" ")) {
-            currentLine.add(Integer.parseInt(nm));
-        }
-
-        // For the part 2 we just need to reverse the list
-        currentLine = currentLine.reversed();
-
-        // Building the numbers
         while (!found) {
             
-            int diff;
             found = true;
             
             // calc the diff in the current line
@@ -71,18 +74,51 @@ public class Day9 {
         // Add 0 to the last line
         currentLine.add(0);
         pastLines.add(currentLine);
+    }
+    
 
-        // Finding the missing values
-        for (int i = pastLines.size()-2; i>=0; i--){
-            res = pastLines.get(i+1).getLast() + pastLines.get(i).getLast();
-            pastLines.get(i)
+    /**
+     * Find the missing values
+     * @param pastlines the past lines
+     * @return the top missing value
+     */
+    public static int findValues(List<List<Integer>> pastlines) {
+        int res = 0;
+        for (int i = pastlines.size()-2; i>=0; i--){
+            res = pastlines.get(i+1).getLast() + pastlines.get(i).getLast();
+            pastlines.get(i)
                 .add(res);
             
         }
-
-        // System.out.println(res);
-
         return res;
+    }
+
+    /**
+     * Calculate the line
+     * @param line the line to calculate
+     * @return the tuple of the result
+     */
+    public static Tuple<Integer> calcLine(String line) {
+        // init values
+        List<Integer> currentLine = new ArrayList<Integer>();
+        List<Integer> nextLine = new ArrayList<Integer>();
+        
+        // Get the numbers of the line
+        for (String nm : line.split(" ")) {
+            currentLine.add(Integer.parseInt(nm));
+        }
+        
+        // For the part 2 we just need to reverse the list        
+        Tuple<List<Integer>> lines = new Tuple<List<Integer>>(currentLine, new ArrayList<Integer>(currentLine).reversed());
+        Tuple<List<List<Integer>>> pastLines = new Tuple<List<List<Integer>>>(new ArrayList<List<Integer>>(), new ArrayList<List<Integer>>());
+
+        // Building the numbers
+        buildNumers(lines.left, nextLine, pastLines.left);
+        buildNumers(lines.right, nextLine, pastLines.right);
+
+        // Finding the missing values
+        return new Tuple<Integer> (findValues(pastLines.left), findValues(pastLines.right));
+
     }
 
         
